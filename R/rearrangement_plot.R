@@ -110,10 +110,10 @@ plot_rearrangements = function(
     yrange = NULL, ideogram=T, cn_cex=0.5, lwd = 0.75, cn_win_size = 1e5,
     BFB_ids = c(), arrow_ln = 0.15, xlim = NULL, chr_lim = NULL, annot = NULL, main = NULL, CN_SV_gap=F,
     ascat_tbl=NULL, specific_SV_cols=NA, p_ylim_quantile=0.999, yaxis_ticks=NA, y_sv1 = 0.3, y_sv2 = 0.75,
-    yaxis_side = 4
+    yaxis_side = 4, ref = 'hg19'
 ) {
   # Args:
-    chrs = characterCHR(chrs, prefix="chr")
+    chrs = characterCHR(chrs)
     if (!is.null(chr_lim)) {
         chr_lim = as.character(chr_lim)
     }
@@ -527,11 +527,11 @@ plot_rearrangements = function(
         ideogram = F
     }
     if (ideogram) {
-        for (c in chrs) {
+        for (c in quantsmooth::numericCHR(chrs)) {
             quantsmooth::paintCytobands(
                 c,
                 pos = c(1 + chr_cum_lns[c], yrange[1]-ifelse(is.null(ascat_tbl),0.1,0.3)*yrange_size),
-                units="bases",
+                units=ref,
                 width = 0.1*yrange_size,
                 length.out = chr_lens[c],
                 legend = F
