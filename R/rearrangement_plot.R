@@ -212,7 +212,7 @@ plot_rearrangements = function(
         axis(
             1,
             at = (cumsum(chr_lens[chrs]) + chr_cum_lns)/2,
-            labels = paste("chr", chrs, sep=""),
+            labels = paste0("", chrs),
             tick = F,
             cex.lab = 1.5,
             cex.axis = 0.8
@@ -221,7 +221,7 @@ plot_rearrangements = function(
         axis(
             1,
             at = mean(xlim),
-            labels = paste("chr", chr_lim, " position (Mb) 2", sep=""),
+            labels = paste0("", chr_lim, " position (Mb) 2"),
             tick = F,
             cex.lab = 1.5
         )
@@ -229,7 +229,7 @@ plot_rearrangements = function(
         axis(
             1,
             at = mean(xlim),
-            labels = paste("chr", chrs, " position (Mb) 3", sep=""),
+            labels = paste0("", chrs, " position (Mb) 3"),
             tick = F,
             cex.lab = 1.5
         )
