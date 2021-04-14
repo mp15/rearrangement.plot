@@ -1,5 +1,5 @@
 Package: rearrangement.plot
-Title: What the Package Does (One Line, Title Case)
+Title: Plots Genomic Rearrangements and Copy Number
 Version: 0.0.0.9000
 Authors@R: 
     person(given = "First",

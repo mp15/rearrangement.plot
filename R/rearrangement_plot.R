@@ -93,7 +93,7 @@ window_means = function (coords, cns, min_pos, max_pos, win_size) {
 #' fn_bedpe <- '/data/CGP_donor_A/sanger/A_SV_4_0_12/A_vs_B.annot.bedpe'
 #' fn_cn <- '/data/CGP_donor_A/sanger/A_SV_4_0_12/intermediates/B.ngscn.abs_cn.bg.gz'
 #' bedpe <- read.table(fn_bedpe, header = F, sep = "\t", stringsAsFactors = F)
-#' zz <- gzfile('file.csv.gz','rt')  
+#' zz <- gzfile(fn_cn','rt')
 #' cn <- read.table(zz,    header = F, sep = "\t", stringsAsFactors = F, colClasses = c("factor", "numeric", "numeric", "numeric"))
 #' chr_lens <- read.table('~/dev/params/hg19.chrom_sizes.txt', header=F, sep="\t", row.names=1, colClasses = c("character","character", "numeric"))
 #' temp <- rownames(chr_lens)
@@ -113,7 +113,7 @@ plot_rearrangements = function(
     yaxis_side = 4
 ) {
   # Args:
-    chrs = as.character(chrs)
+    chrs = characterCHR(chrs, prefix="chr")
     if (!is.null(chr_lim)) {
         chr_lim = as.character(chr_lim)
     }
