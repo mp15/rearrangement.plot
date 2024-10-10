@@ -508,14 +508,16 @@ plot_rearrangements = function(
         sel = annot[,1] %in% chrs
         segments(
             x0 = chr_cum_lns[as.character(annot[sel, 1])] + annot[sel, 2],
-            y0 = 1.1 * yrange_size + yrange_CN[2] + (0:(sum(annot[,1] %in% chrs)-1)) * 0.05 * yrange_size,
+            y0 = 0.8 * yrange_size + yrange_CN[2] + (0:(sum(annot[,1] %in% chrs)-1)) * 0.05 * yrange_size,
             x1 = chr_cum_lns[as.character(annot[sel, 1])] + annot[sel, 3],
-            lwd = 2
+            y1 = 0,
+            lwd = 2,
+            col="orange"
         )
         
         text(
             chr_cum_lns[as.character(annot[sel, 1])] + rowMeans(annot[sel, 2:3]),
-            1.2 * yrange_size + yrange_CN[2] + (0:(sum(annot[,1] %in% chrs)-1)) * 0.05 * yrange_size,
+            0.9 * yrange_size + yrange_CN[2] + (0:(sum(annot[,1] %in% chrs)-1)) * 0.05 * yrange_size,
             labels = annot[sel,4], cex = par('cex.axis')
         )
     }
