@@ -529,9 +529,10 @@ plot_rearrangements = function(
         ideogram = F
     }
     if (ideogram) {
-        for (c in quantsmooth::numericCHR(chrs)) {
+        for (c in chrs) {
+            qc <- quantsmooth::numericCHR(c)
             quantsmooth::paintCytobands(
-                c,
+                qc,
                 pos = c(1 + chr_cum_lns[c], yrange[1]-ifelse(is.null(ascat_tbl),0.1,0.3)*yrange_size),
                 units=ref,
                 width = 0.1*yrange_size,
