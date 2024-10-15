@@ -7,6 +7,10 @@ make_plot <- function(in_row, out_dir, sample_annot, chrom_sizes) {
     fn_cn <- in_row[3]
     this_sample <- in_row[1]
     annot <- na.omit(sample_annot[sample_annot$CASM.sample.name == this_sample, c("chr", "start", "end", "Guide")])
+    genes_list <- data.frame(chr = c("chr5", "chr2"),
+                             start = c(80626226, 231453531),
+                             end = c(80654983, 231483641),
+                             gene = c("DHFR", "NCL"))
     if (!file.exists(fn_bedpe)) {
         print(paste0("file not found ", fn_bedpe))
         return()
@@ -26,7 +30,8 @@ make_plot <- function(in_row, out_dir, sample_annot, chrom_sizes) {
     pdf(paste0(out_dir, "/", this_sample, ".pdf"), h = 4, w = 10)
     for (c in paste0("chr", c(seq(1, 22), "X", "Y"))) {
         plot_rearrangements(bedpe = bedpe, chrs = c, chr_lens = chr_lens, cn_bedgraph = cn,
-        cn_win_size = 1e4, cn_cex = 0.3, ref = "hg38", ideogram = T, annot = annot)
+        cn_win_size = 1e4, cn_cex = 0.3, ref = "hg38", ideogram = T, annot_feature = annot,
+        annot_gene = genes_list)
     }
     dev.off()
     warnings()

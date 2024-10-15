@@ -108,7 +108,7 @@ window_means = function (coords, cns, min_pos, max_pos, win_size) {
 plot_rearrangements = function(
     bedpe, chrs, chr_lens, cn_bedgraph = NULL, segments = NULL,
     yrange = NULL, ideogram=T, cn_cex=0.5, lwd = 0.75, cn_win_size = 1e5,
-    BFB_ids = c(), arrow_ln = 0.15, xlim = NULL, chr_lim = NULL, annot = NULL, main = NULL, CN_SV_gap=F,
+    BFB_ids = c(), arrow_ln = 0.15, xlim = NULL, chr_lim = NULL, annot_gene = NULL, annot_feature = NULL, main = NULL, CN_SV_gap=F,
     ascat_tbl=NULL, specific_SV_cols=NA, p_ylim_quantile=0.999, yaxis_ticks=NA, y_sv1 = 0.3, y_sv2 = 0.75,
     yaxis_side = 4, ref = 'hg19'
 ) {
@@ -207,7 +207,7 @@ plot_rearrangements = function(
     )
     
     # X axis names and ticks
-    par(mgp = par("mgp") + c(0,1,0))
+    par(mgp = par("mgp") + c(0,2.5,0))
     if (all(xlim == c(1, sum(chr_lens[chrs])))) {
         axis(
             1,
@@ -234,12 +234,13 @@ plot_rearrangements = function(
             cex.lab = 1.5
         )
     }
-    par(mgp = par("mgp") - c(0,1,0))
+    par(mgp = par("mgp") - c(0,2.5,0))
       
     if(CN_SV_gap==T) {
       #par(oma = c(0,0,0,2))
     }
     
+#    par(mgp = par("mgp") + c(0,1.5,0))
     if (length(chrs) > 1) {
         if (all(xlim == c(1, sum(chr_lens[chrs])))) {
             for (c in chrs) {
@@ -252,19 +253,20 @@ plot_rearrangements = function(
                 stop()
             }
             
-            pretty_ticks = pretty(xlim - chr_cum_lns[chr_lim])
+            pretty_ticks <- pretty(xlim - chr_cum_lns[chr_lim])
             
             axis(1, at = pretty_ticks + chr_cum_lns[chr_lim], labels = pretty_ticks/1e6)
         }
     } else {
         if (all(xlim == c(1, sum(chr_lens[chrs])))) {
-            axis(1, at = axisTicks(usr=c(1, chr_lens[chrs]), log=F), labels = axisTicks(usr=c(1, chr_lens[chrs]), log=F)/1e6)
+            ticks <- unique(c(0,axisTicks(usr=c(1, chr_lens[chrs]), log=F),floor(chr_lens[chrs]/1e6)*1e6))
+            axis(1, at = ticks, labels = ticks/1e6)
         } else {
             pretty_ticks = pretty(xlim)
             axis(1, at = pretty_ticks, labels = pretty_ticks / 1e6)
         }
     }
-    
+#    par(mgp = par("mgp") - c(0,1.5,0))
     
     # Shaded grid
     for (i in yrange[1]:yrange[2]) {
@@ -502,25 +504,6 @@ plot_rearrangements = function(
         )
     }
     
-    
-    # Annotations on top
-    if (!is.null(annot) && sum(annot[,1] %in% chrs > 0)) {
-        sel = annot[,1] %in% chrs
-        segments(
-            x0 = chr_cum_lns[as.character(annot[sel, 1])] + annot[sel, 2],
-            y0 = 0.8 * yrange_size + yrange_CN[2] + (0:(sum(annot[,1] %in% chrs)-1)) * 0.05 * yrange_size,
-            x1 = chr_cum_lns[as.character(annot[sel, 1])] + annot[sel, 3],
-            y1 = 0,
-            lwd = 2,
-            col="orange"
-        )
-        
-        text(
-            chr_cum_lns[as.character(annot[sel, 1])] + rowMeans(annot[sel, 2:3]),
-            0.9 * yrange_size + yrange_CN[2] + (0:(sum(annot[,1] %in% chrs)-1)) * 0.05 * yrange_size,
-            labels = annot[sel,4], cex = par('cex.axis')
-        )
-    }
 
     # Finally ideogram
     if (xlim[2] - xlim[1] < 10e6) {
@@ -542,6 +525,45 @@ plot_rearrangements = function(
         }
     }
     
+    
+    # Feature annotations
+    if (!is.null(annot_feature) && sum(annot_feature[,1] %in% chrs > 0)) {
+        sel = annot_feature[,1] %in% chrs
+        segments(
+            x0 = chr_cum_lns[as.character(annot_feature[sel, 1])] + annot_feature[sel, 2],
+            y0 = yrange[1]-ifelse(is.null(ascat_tbl),0.1,0.3)*yrange_size - 0.830 * yrange_size,
+            x1 = chr_cum_lns[as.character(annot_feature[sel, 1])] + annot_feature[sel, 3],
+            y1 = yrange[1]-ifelse(is.null(ascat_tbl),0.1,0.3)*yrange_size - 0.130 * yrange_size,
+            lwd = 2,
+            col="orange", xpd=NA
+        )
+        
+        text(
+            chr_cum_lns[as.character(annot_feature[sel, 1])] + rowMeans(annot_feature[sel, 2:3]),
+            yrange[1]-ifelse(is.null(ascat_tbl),0.1,0.3)*yrange_size - 0.930 * yrange_size,
+            labels = annot_feature[sel,4], cex = par('cex.axis'), xpd=NA
+        )
+    }
+
+    # Gene Annotations
+    if (!is.null(annot_gene) && sum(annot_gene[,1] %in% chrs > 0)) {
+        sel = annot_gene[,1] %in% chrs
+        segments(
+            x0 = chr_cum_lns[as.character(annot_gene[sel, 1])] + annot_gene[sel, 2],
+            y0 = yrange[1]-ifelse(is.null(ascat_tbl),0.1,0.3)*yrange_size - 0.530 * yrange_size,
+            x1 = chr_cum_lns[as.character(annot_gene[sel, 1])] + annot_gene[sel, 3],
+            y1 = yrange[1]-ifelse(is.null(ascat_tbl),0.1,0.3)*yrange_size - 0.130 * yrange_size,
+            lwd = 2,
+            col="blue", xpd=NA
+        )
+        
+        text(
+            chr_cum_lns[as.character(annot_gene[sel, 1])] + rowMeans(annot_gene[sel, 2:3]),
+            yrange[1]-ifelse(is.null(ascat_tbl),0.1,0.3)*yrange_size - 0.680 * yrange_size,
+            labels = annot_gene[sel,4], cex = par('cex.axis'), xpd=NA
+        )
+    }
+
     # Plot CN
     win_size = cn_win_size
     for (c in chrs) {
@@ -602,7 +624,7 @@ plot_rearrangements = function(
       yaxis_ticks = round(axisTicks(usr=c(yrange[1], 0.9*yrange[2]), nint=3, log=F))
       axis(yaxis_side, at = yaxis_ticks, las=2, cex.axis=1)
     }
-    
+
     c(yrange=yrange,yrange_size=yrange_size)
 }
 
