@@ -18,6 +18,7 @@
 library(dplyr)
 library(scales)
 library(quantsmooth)  # For ideogram
+library(Hmisc) # for subticks
 
 add.alpha <- function(col, alpha=1){
   if(missing(col))
@@ -206,7 +207,8 @@ plot_rearrangements = function(
         main = main
     )
     
-    # X axis names and ticks
+    ### X axis names and ticks ###
+    # Names
     par(mgp = par("mgp") + c(0,2.5,0))
     if (all(xlim == c(1, sum(chr_lens[chrs])))) {
         axis(
@@ -240,7 +242,7 @@ plot_rearrangements = function(
       #par(oma = c(0,0,0,2))
     }
     
-#    par(mgp = par("mgp") + c(0,1.5,0))
+    # Ticks
     if (length(chrs) > 1) {
         if (all(xlim == c(1, sum(chr_lens[chrs])))) {
             for (c in chrs) {
@@ -266,7 +268,8 @@ plot_rearrangements = function(
             axis(1, at = pretty_ticks, labels = pretty_ticks / 1e6)
         }
     }
-#    par(mgp = par("mgp") - c(0,1.5,0))
+    minor.tick(nx = 10, ny = 1,   # Ticks density
+                tick.ratio = 0.5) # Ticks size
     
     # Shaded grid
     for (i in yrange[1]:yrange[2]) {
