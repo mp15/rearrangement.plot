@@ -31,7 +31,7 @@ add.alpha <- function(col, alpha=1){
 arc = function(x0, x1, y, xr, yr, col, lwd) {
     x = (x0 + x1)/2  # Center of arc
     xr = x - x0 	 # x-radius of arc
-    
+
     apply(
         cbind(x, y, xr, yr, col),
         1,
@@ -52,7 +52,7 @@ arc = function(x0, x1, y, xr, yr, col, lwd) {
             )
         }
     )
-    
+
     return()
 }
 
@@ -175,7 +175,7 @@ plot_rearrangements = function(
     inter_chrs_col = "darkorchid1"
     tail_tail_col  = "cadetblue4"
     head_head_col  = "chartreuse2"
-    
+
     # Determine the SV class based on BRASS2 strand calls, where:
     # D: deletion; TD: tandem-duplication; HH: head-to-head inversion; TT: tail-to-tail inversion
     bedpe = dplyr::mutate(bedpe, SV_class=ifelse(V12=='translocation', 'translocation',
@@ -355,7 +355,7 @@ plot_rearrangements = function(
     }
     #----
     
-    # Then rearrangments where low end %in% chrs and !(high end %in% chrs) 
+    # Then rearrangments where low end %in% chrs and !(high end %in% chrs)
     sel = bedpe[,1] %in% chrs & !(bedpe[,4] %in% chrs)
     if (sum(sel) > 0) {
         # arrows(
@@ -627,6 +627,20 @@ plot_rearrangements = function(
       yaxis_ticks = round(axisTicks(usr=c(yrange[1], 0.9*yrange[2]), nint=3, log=F))
       axis(yaxis_side, at = yaxis_ticks, las=2, cex.axis=1)
     }
+
+    # legend
+    coord <- par("usr")
+    print(coord)
+    leg <- c("TD", "Del", "InterChrom", "Tail-tail","Head-head")
+    leg_fill <- c("darkorange4","darkslateblue","darkorchid1", "cadetblue4", "chartreuse2")
+    dummy <- legend(x = 0, y = 0,
+            legend= leg,
+            fill = leg_fill,
+            xpd=NA, ncol=2, pt.cex = 0.25, bty='n', plot=FALSE)
+    legend(x = coord[2] - dummy$rect$w, y = coord[4] + dummy$rect$h,
+            legend= leg,
+            fill = leg_fill,
+            xpd=NA, ncol=2, pt.cex = 0.25, bty='n')
 
     c(yrange=yrange,yrange_size=yrange_size)
 }
