@@ -107,7 +107,7 @@ window_means = function (coords, cns, min_pos, max_pos, win_size) {
 #' dev.off()
 
 plot_rearrangements = function(
-    bedpe, chrs, chr_lens, cn_bedgraph = NULL, segments = NULL,
+    bedpe, chrs, chr_lens, cn_bedgraph = NULL, segments_sel = NULL,
     yrange = NULL, ideogram=T, cn_cex=0.5, lwd = 0.75, cn_win_size = 1e5,
     BFB_ids = c(), arrow_ln = 0.15, xlim = NULL, chr_lim = NULL, annot_gene = NULL, annot_feature = NULL, main = NULL, CN_SV_gap=F,
     ascat_tbl=NULL, specific_SV_cols=NA, p_ylim_quantile=0.999, yaxis_ticks=NA, y_sv1 = 0.3, y_sv2 = 0.75,
@@ -126,7 +126,11 @@ plot_rearrangements = function(
         xlim = c(1, sum(chr_lens[chrs]))
         
         if (is.null(yrange)) {
-            yrange = c(0, quantile(cn_bedgraph[cn_bedgraph[,1] %in% chrs, 4], p = p_ylim_quantile))
+            if (is.null(cn_bedgraph)) {
+                yrange = c(0, 2)
+            } else {
+                yrange = c(0, quantile(cn_bedgraph[cn_bedgraph[,1] %in% chrs, 4], p = p_ylim_quantile))
+            }
             yrange = c(floor(yrange[1]), ceiling(yrange[2]))
             if(yrange[2]<2) {
               yrange[2] = 2
@@ -162,9 +166,9 @@ plot_rearrangements = function(
     
     if (!is.null(cn_bedgraph)) {
         cn = cn_bedgraph[cn_bedgraph[,1] %in% chrs, ]
-    } else if (!is.null(segments)) {
+    } else if (!is.null(segments_sel)) {
     } else {
-        stop("Either cn_bedgraph or segments must be provided")
+        #stop("Either cn_bedgraph or segments_sel must be provided")
     }
     
     yrange_size = yrange[2] - yrange[1]
@@ -601,13 +605,13 @@ plot_rearrangements = function(
       
       
       
-      if (!is.null(segments)) {
-        sel = segments[,1] == c
+      if (!is.null(segments_sel)) {
+        sel = segments_sel[,1] == c
         
         segments(
           x0 = chr_cum_lns[c] + segments[sel, 2] + 1,
           x1 = chr_cum_lns[c] + segments[sel, 3],
-          y0 = segments[sel, 4],
+          y0 = segments_sel[sel, 4],
           lwd = 2,
           col = "blue"
         )
