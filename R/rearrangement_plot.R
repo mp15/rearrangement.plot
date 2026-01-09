@@ -13,12 +13,13 @@
 # source("/Users/yl3/Documents/workspace/rg_ordering_pilot/rearrangement_plot.R")
 
 # /// EDITED by Simon Brunner /// # 
-
+# Martin Pollard: Further modifications to the original code by Yilong Li to allow markers to highlight specific SVs, and to allow for a gap between CNV and SV plotting areas. 
 
 library(dplyr)
 library(scales)
 library(quantsmooth)  # For ideogram
 library(Hmisc) # for subticks
+library(imputeTS) # for na_interpolation
 
 add.alpha <- function(col, alpha=1){
   if(missing(col))
@@ -82,7 +83,12 @@ window_means = function (coords, cns, min_pos, max_pos, win_size) {
 #' @param bedpe File handle for BEDPE containing SVs
 #' @param chrs The chromosomes to plot for
 #' @param chr_lens File handle for file containing chromosome_lengths
-#' @param cn_bedgraph File handle for bg file contain copy number information. Defaults to NULL. 
+#' @param cn_bedgraph File handle for bg file contain copy number information. Defaults to NULL.
+#' @param baf_pos File handle for file containing BAF information. Defaults to NULL.
+#' @param cn_win_size Window size for copy number smoothing. Defaults to 1e5.
+#' @param baf_win_size Window size for BAF smoothing. Defaults to 1e6.
+#' @param yrange Y-axis range for copy number plot. If NULL, it will be determined from the data. Defaults to NULL.
+#' @param segments_sel Data frame containing copy number segments. Defaults to NULL.
 #' @param CN_SV_gap: (default: False) If set to true then a gap of size yrange_size will be left between copy number (CN) and structural variant (SV) data.
 #' @param specific_SV_cols (default: NA): if set, then SVs will be plotted with the colors provided in the vector (one entry for each SV)
 #' @param y_sv1: yrange[2]*(1+y_sv1) is where the lower SVs are plotted
@@ -107,9 +113,9 @@ window_means = function (coords, cns, min_pos, max_pos, win_size) {
 #' dev.off()
 
 plot_rearrangements = function(
-    bedpe, chrs, chr_lens, cn_bedgraph = NULL, segments_sel = NULL,
-    yrange = NULL, ideogram=T, cn_cex=0.5, lwd = 0.75, cn_win_size = 1e5,
-    BFB_ids = c(), arrow_ln = 0.15, xlim = NULL, chr_lim = NULL, annot_gene = NULL, annot_feature = NULL, main = NULL, CN_SV_gap=F,
+    bedpe, chrs, chr_lens, cn_bedgraph = NULL, baf_pos = NULL, segments_sel = NULL,
+    yrange = NULL, ideogram=T, cn_cex=0.5, lwd = 0.75, cn_win_size = 1e5, baf_win_size = 1e6,
+    BFB_ids = c(), arrow_ln = 0.15, xlim = NULL, chr_lim = NULL, annot_gene = NULL, annot_feature = NULL, annot_kat = NULL, main = NULL, CN_SV_gap=F,
     ascat_tbl=NULL, specific_SV_cols=NA, p_ylim_quantile=0.999, yaxis_ticks=NA, y_sv1 = 0.3, y_sv2 = 0.75,
     yaxis_side = 4, ref = 'hg19'
 ) {
@@ -213,7 +219,7 @@ plot_rearrangements = function(
     
     ### X axis names and ticks ###
     # Names
-    par(mgp = par("mgp") + c(0,2.5,0))
+    par(mgp = par("mgp") + c(0, 2.5, 0))
     if (all(xlim == c(1, sum(chr_lens[chrs])))) {
         axis(
             1,
@@ -307,10 +313,10 @@ plot_rearrangements = function(
     if(CN_SV_gap) {
       print(par('cex.axis'))
       #mtext(side=2, 'CN',at=yrange_size/2, line=3, cex=par('cex.axis'), las=2)
-      mtext(side=2, 'Copy\nnum.',at=yrange_size/2, cex=1.0, las=2, line=yaxis_line)
+      mtext(side=4, 'Copy\nnum.',at=yrange_size/2, cex=1.0, las=2, line=yaxis_line)
     } else {
       #title(ylab = "CN", line=3, cex=par('cex.axis'), las=2)
-      mtext(side=2, 'Copy\nnum.',at=yrange_size/2, cex=1.0, las=2, line=yaxis_line)
+      mtext(side=4, 'Copy\nnum.',at=yrange_size/2, cex=1.0, las=2, line=yaxis_line)
     }
     
     # Plot rearrangements: First dotted lines
@@ -532,6 +538,24 @@ plot_rearrangements = function(
         }
     }
     
+    # Kataegis annotations
+    if (!is.null(annot_kat) && sum(annot_kat[,1] %in% chrs > 0)) {
+        sel = annot_kat[,1] %in% chrs
+        segments(
+            x0 = chr_cum_lns[as.character(annot_kat[sel, 1])] + annot_kat[sel, 2],
+            y0 = yrange[1]-ifelse(is.null(ascat_tbl),0.1,0.3)*yrange_size - 0.830 * yrange_size,
+            x1 = chr_cum_lns[as.character(annot_kat[sel, 1])] + annot_kat[sel, 3],
+            y1 = yrange[1]-ifelse(is.null(ascat_tbl),0.1,0.3)*yrange_size - 0.130 * yrange_size,
+            lwd = 2,
+            col="orange", xpd=NA
+        )
+
+        text(
+            chr_cum_lns[as.character(annot_kat[sel, 1])] + rowMeans(annot_kat[sel, 2:3]),
+            yrange[1]-ifelse(is.null(ascat_tbl),0.1,0.3)*yrange_size - 0.930 * yrange_size,
+            labels = annot_kat[sel,4], cex = par('cex.axis'), xpd=NA
+        )
+    }
     
     # Feature annotations
     if (!is.null(annot_feature) && sum(annot_feature[,1] %in% chrs > 0)) {
@@ -544,7 +568,7 @@ plot_rearrangements = function(
             lwd = 2,
             col="orange", xpd=NA
         )
-        
+
         text(
             chr_cum_lns[as.character(annot_feature[sel, 1])] + rowMeans(annot_feature[sel, 2:3]),
             yrange[1]-ifelse(is.null(ascat_tbl),0.1,0.3)*yrange_size - 0.930 * yrange_size,
@@ -563,7 +587,7 @@ plot_rearrangements = function(
             lwd = 2,
             col="blue", xpd=NA
         )
-        
+
         text(
             chr_cum_lns[as.character(annot_gene[sel, 1])] + rowMeans(annot_gene[sel, 2:3]),
             yrange[1]-ifelse(is.null(ascat_tbl),0.1,0.3)*yrange_size - 0.680 * yrange_size,
@@ -576,7 +600,7 @@ plot_rearrangements = function(
     for (c in chrs) {
       if (!is.null(cn_bedgraph)) {
         # sel = cn[,1] == c
-        # When plotting only one chromome with zoomed-in image, only plot
+        # When plotting only one chromosome with zoomed-in image, only plot
         # the data that will be visible in the graph.
         if (length(chrs) == 1 && !all(xlim == c(1, chr_lens[chrs]))) {
           sel = cn[,1] == c & cn[,2] > xlim[1] - win_size & cn[,3] < xlim[2] + win_size
@@ -602,9 +626,42 @@ plot_rearrangements = function(
           )
         }
       }
-      
-      
-      
+
+      # Overplot BAF
+      win_size = baf_win_size
+      for (c in chrs) {
+        if (!is.null(baf_pos)) {
+          # sel = cn[,1] == c
+          # When plotting only one chromosome with zoomed-in image, only plot
+          # the data that will be visible in the graph.
+          if (length(chrs) == 1 && !all(xlim == c(1, chr_lens[chrs]))) {
+            sel = baf_pos[,1] == c & baf_pos[,2] > xlim[1] - win_size & baf_pos[,2] < xlim[2] + win_size
+            x = win_size/2 + seq(xlim[1]-win_size, xlim[2]+win_size, win_size)
+            y = na_interpollation(as.vector(window_means(baf_pos[sel, 2], baf_pos[sel, 3], xlim[1]-win_size, xlim[2]+win_size, win_size)*(yrange_size)), maxgap=5)
+            lines(
+                x = x,
+                y = y,
+                pch = 16,
+                cex = cn_cex,
+                xpd=T,
+                col=scales::alpha('lightblue3', 0.7)
+            )
+          }
+          else {
+            sel = baf_pos[,1] == c
+            y = na_interpolation(as.vector(window_means(baf_pos[sel, 2], baf_pos[sel, 3], 1, chr_lens[c], win_size)*(yrange_size)), maxgap=5)
+            lines(
+                x = chr_cum_lns[c] + win_size/2 + seq(1, chr_lens[c], win_size),
+                y = y,
+                pch = 16,
+                cex = cn_cex,
+                col=scales::alpha('lightblue3', 0.7)
+            )
+          }
+        }
+      }
+
+      # Plot segments if provided
       if (!is.null(segments_sel)) {
         sel = segments_sel[,1] == c
         
@@ -632,9 +689,21 @@ plot_rearrangements = function(
       axis(yaxis_side, at = yaxis_ticks, las=2, cex.axis=1)
     }
 
+    # BAF axis
+    if (!is.null(baf_pos)) {
+        axis(
+            2,
+            at = round(axisTicks(usr=c(0, 1), nint=3, log=F)),
+            labels = round(axisTicks(usr=c(0, 1), nint=3, log=F),2),
+            las=2,
+            cex.axis=1,
+            col=scales::alpha('lightblue3', 1)
+        )
+        mtext(side=2, 'BAF',at=yrange_size/2, cex=1.0, las=2, line=2.2)
+    }
+
     # legend
     coord <- par("usr")
-    print(coord)
     leg <- c("TD", "Del", "InterChrom", "Tail-tail","Head-head")
     leg_fill <- c("darkorange4","darkslateblue","darkorchid1", "cadetblue4", "chartreuse2")
     dummy <- legend(x = 0, y = 0,

@@ -5,8 +5,10 @@ library(parallel)
 make_plot <- function(in_row, out_dir, sample_annot, chrom_sizes) {
     fn_bedpe <- in_row[2]
     fn_cn <- in_row[3]
+    fn_kataegis <- in_row[4]
     this_sample <- in_row[1]
     annot <- na.omit(sample_annot[sample_annot$CASM.sample.name == this_sample, c("chr", "start", "end", "Guide")])
+    #hardcoded genes to annotate
     genes_list <- data.frame(chr = c("chr5", "chr2"),
                              start = c(80626226, 231453531),
                              end = c(80654983, 231483641),
@@ -19,9 +21,15 @@ make_plot <- function(in_row, out_dir, sample_annot, chrom_sizes) {
         print(paste0("file not found ", fn_cn))
         return()
     }
+    if (!file.exists(fn_kataegis)) {
+        print(paste0("file not found ", fn_kataegis))
+        return()
+    }
     bedpe <- read.table(fn_bedpe, header = F, sep = "\t", stringsAsFactors = F)
     cn <- read.table(fn_cn, header = F, sep = "\t", stringsAsFactors = F,
-        colClasses = c("factor", "numeric", "numeric", "numeric"))
+        colClasses = c("factor", "numeric", "numeric", "numeric", "numeric"))
+    kataegis <- read.csv(fn_kataegis, header = T, stringsAsFactors = F, row.names = 1,
+        colClasses = c("factor", "numeric", "numeric","numeric", "factor"))
     chr_lens <- read.table(chrom_sizes, header = F, sep = "\t",
         row.names = 1, colClasses = c("character", "character", "numeric"))
     temp <- rownames(chr_lens)
@@ -30,8 +38,8 @@ make_plot <- function(in_row, out_dir, sample_annot, chrom_sizes) {
     pdf(paste0(out_dir, "/", this_sample, ".pdf"), h = 4, w = 10)
     for (c in paste0("chr", c(seq(1, 22), "X", "Y"))) {
         plot_rearrangements(bedpe = bedpe, chrs = c, chr_lens = chr_lens, cn_bedgraph = cn,
-        cn_win_size = 1e4, cn_cex = 0.3, ref = "hg38", ideogram = T, annot_feature = annot,
-        annot_gene = genes_list)
+            cn_win_size = 1e4, cn_cex = 0.3, ref = "hg38", ideogram = T,
+            annot_feature = annot, annot_gene = genes_list, annot_kat = kataegis)
     }
     dev.off()
     warnings()
