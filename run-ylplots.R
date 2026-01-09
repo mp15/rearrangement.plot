@@ -28,8 +28,11 @@ make_plot <- function(in_row, out_dir, sample_annot, chrom_sizes) {
     bedpe <- read.table(fn_bedpe, header = F, sep = "\t", stringsAsFactors = F)
     cn <- read.table(fn_cn, header = F, sep = "\t", stringsAsFactors = F,
         colClasses = c("factor", "numeric", "numeric", "numeric", "numeric"))
-    kataegis <- read.csv(fn_kataegis, header = T, stringsAsFactors = F, row.names = 1,
-        colClasses = c("factor", "numeric", "numeric","numeric", "factor"))
+    kataegis <- read.csv(fn_kataegis, header = T, quote = "\"", stringsAsFactors = F, row.names = 1,
+        colClasses = list("seqnames" = "factor", "start" ="numeric", "end" = "numeric", "width" = "NULL",
+        "strand" = "factor", "fociID" = "NULL", "sampleNames" = "NULL", "totalVariants" = "NULL",
+        "firstVariantID" = "NULL", "lastVariantID" = "NULL", "meanIMD" = "numeric",
+        "IMDcutoff" = "NULL"))
     chr_lens <- read.table(chrom_sizes, header = F, sep = "\t",
         row.names = 1, colClasses = c("character", "character", "numeric"))
     temp <- rownames(chr_lens)

@@ -194,7 +194,7 @@ plot_rearrangements = function(
                                    ifelse(V9=='+' & V10=='-', 'HH','TT')))))
     
     # Create the plot
-    # par(mar = c(5, 4, 2, 2) + .1)
+    par(mar = c(5, 4, 4, 5))  # Increase right margin for y-axis label
     
     # Define ylim depending on whether ascat alleles are provided
     if(is.null(ascat_tbl)) {
@@ -313,10 +313,10 @@ plot_rearrangements = function(
     if(CN_SV_gap) {
       print(par('cex.axis'))
       #mtext(side=2, 'CN',at=yrange_size/2, line=3, cex=par('cex.axis'), las=2)
-      mtext(side=4, 'Copy\nnum.',at=yrange_size/2, cex=1.0, las=2, line=yaxis_line)
+      mtext(side=4, 'Copy\nnum.',at=yrange_size/2-0.1*yrange_size, cex=1.0, las=2, line=yaxis_line+2)
     } else {
       #title(ylab = "CN", line=3, cex=par('cex.axis'), las=2)
-      mtext(side=4, 'Copy\nnum.',at=yrange_size/2, cex=1.0, las=2, line=yaxis_line)
+      mtext(side=4, 'Copy\nnum.',at=yrange_size/2-0.1*yrange_size, cex=1.0, las=2, line=yaxis_line+2)
     }
     
     # Plot rearrangements: First dotted lines
@@ -538,25 +538,6 @@ plot_rearrangements = function(
         }
     }
     
-    # Kataegis annotations
-    if (!is.null(annot_kat) && sum(annot_kat[,1] %in% chrs > 0)) {
-        sel = annot_kat[,1] %in% chrs
-        segments(
-            x0 = chr_cum_lns[as.character(annot_kat[sel, 1])] + annot_kat[sel, 2],
-            y0 = yrange[1]-ifelse(is.null(ascat_tbl),0.1,0.3)*yrange_size - 0.830 * yrange_size,
-            x1 = chr_cum_lns[as.character(annot_kat[sel, 1])] + annot_kat[sel, 3],
-            y1 = yrange[1]-ifelse(is.null(ascat_tbl),0.1,0.3)*yrange_size - 0.130 * yrange_size,
-            lwd = 2,
-            col="orange", xpd=NA
-        )
-
-        text(
-            chr_cum_lns[as.character(annot_kat[sel, 1])] + rowMeans(annot_kat[sel, 2:3]),
-            yrange[1]-ifelse(is.null(ascat_tbl),0.1,0.3)*yrange_size - 0.930 * yrange_size,
-            labels = annot_kat[sel,4], cex = par('cex.axis'), xpd=NA
-        )
-    }
-    
     # Feature annotations
     if (!is.null(annot_feature) && sum(annot_feature[,1] %in% chrs > 0)) {
         sel = annot_feature[,1] %in% chrs
@@ -592,6 +573,19 @@ plot_rearrangements = function(
             chr_cum_lns[as.character(annot_gene[sel, 1])] + rowMeans(annot_gene[sel, 2:3]),
             yrange[1]-ifelse(is.null(ascat_tbl),0.1,0.3)*yrange_size - 0.680 * yrange_size,
             labels = annot_gene[sel,4], cex = par('cex.axis'), xpd=NA
+        )
+    }
+    
+    # Kataegis annotations
+    if (!is.null(annot_kat) && sum(annot_kat[,1] %in% chrs > 0)) {
+        sel = annot_kat[,1] %in% chrs
+        segments(
+            x0 = chr_cum_lns[as.character(annot_kat[sel, 1])] + annot_kat[sel, 2],
+            y0 = yrange[1]-ifelse(is.null(ascat_tbl),0.1,0.3)*yrange_size - 0.300 * yrange_size,
+            x1 = chr_cum_lns[as.character(annot_kat[sel, 1])] + annot_kat[sel, 3],
+            y1 = yrange[1]-ifelse(is.null(ascat_tbl),0.1,0.3)*yrange_size - 0.200 * yrange_size,
+            lwd = 2,
+            col="red", xpd=NA
         )
     }
 

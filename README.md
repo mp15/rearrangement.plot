@@ -23,3 +23,6 @@ library(rearrangement.plot)
 ## basic example code
 ```
 
+``` sh
+Rscript --vanilla run-ylplots.R input.trunc test/ guide_list.csv cut_sites.csv hs38dh.chrom_sizes.txt
+```
